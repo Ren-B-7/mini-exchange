@@ -123,6 +123,11 @@ int main(int argc, char* argv[])
 		json = fetch_rates(current_currency, NULL);
 	} else {
 		uppercase_string(target_currencies_str);
+		if (!is_supported_currency(target_currencies_str)) {
+			fprintf(stderr, "Error: Unsupported current currency code '%s'.\n",
+			 target_currencies_str);
+			return EXIT_FAILURE;
+		}
 		json = fetch_rates(current_currency, target_currencies_str);
 	}
 
