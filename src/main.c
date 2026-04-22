@@ -90,6 +90,11 @@ int main(int argc, char* argv[])
 		}
 		snprintf(test_base, sizeof(test_base), "%s", argv[2]);
 		uppercase_string(test_base);
+		if (!is_supported_currency(test_base)) {
+			fprintf(stderr, "Error: Unsupported current currency code '%s'.\n",
+			 test_base);
+			return EXIT_FAILURE;
+		}
 		test_currencies_against_api(test_base);
 		return EXIT_SUCCESS;
 	}
