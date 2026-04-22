@@ -63,13 +63,17 @@ OPTFLAGS = -O3 -march=native -flto
 SYSTEM_INCLUDES = $(shell pkg-config --cflags libcjson libcurl | sed 's/-I/-isystem /g')
 
 # Combined all flags
-ALL_CFLAGS = $(CFLAGS) $(HARDENING) $(OPTFLAGS) $(SYSTEM_INCLUDES)
+ALL_CFLAGS = $(CFLAGS) $(HARDENING) $(OPTFLAGS) $(SYSTEM_INCLUDES) -Isrc
 LDLIBS = $(shell pkg-config --libs libcjson libcurl) -lm
 
-TARGET = exchange
-OBJS = main.o api.o convert.o currencies.o
-SRCS = main.c api.c convert.c currencies.c
-HDRS = api.h convert.h currencies.h
+SRC_DIR = src
+BIN_DIR = bin
+OBJ_DIR = obj
+
+TARGET = $(BIN_DIR)/exchange
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+HDRS = $(wildcard $(SRC_DIR)/*.h)
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
 .PHONY: all clean install run format lint asan
 
@@ -81,14 +85,14 @@ run: $(TARGET)
 # Build with AddressSanitizer
 asan: clean
 	$(MAKE) ALL_CFLAGS="$(ALL_CFLAGS) -fsanitize=address -g" LDFLAGS="$(LDFLAGS) -fsanitize=address" $(TARGET)
-	@echo "Build complete. Run './exchange' with 'ASAN_OPTIONS=detect_leaks=1' to check for leaks."
+	@echo "Build complete. Run './$(TARGET)' with 'ASAN_OPTIONS=detect_leaks=1' to check for leaks."
 
 format:
 	clang-format -style=file:./.clang-format -i $(SRCS) $(HDRS)
 	mbake format --config ./.bake.toml Makefile
 
 CLANG_TIDY_CHECKS = -checks=-bugprone-easily-swappable-parameters,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-readability-function-cognitive-complexity
-CLANG_TIDY_FLAGS = -std=c99 -pedantic -Wall -Wextra -Werror $(SYSTEM_INCLUDES)
+CLANG_TIDY_FLAGS = -std=c99 -pedantic -Wall -Wextra -Werror $(SYSTEM_INCLUDES) -Isrc
 
 lint:
 	clang-tidy $(CLANG_TIDY_CHECKS) $(SRCS) -- $(CLANG_TIDY_FLAGS)
@@ -97,15 +101,18 @@ lint:
 fix:
 	clang-tidy --fix $(CLANG_TIDY_CHECKS) $(SRCS) -- $(CLANG_TIDY_FLAGS)
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) | $(BIN_DIR)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $(TARGET) $(OBJS) $(LDLIBS)
 
-%.o: %.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
+
+$(BIN_DIR) $(OBJ_DIR):
+	mkdir -p $@
 
 install: $(TARGET)
 	mkdir -p $(HOME)/.local/bin
 	install -m 755 $(TARGET) $(HOME)/.local/bin/
 
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -rf $(BIN_DIR) $(OBJ_DIR)
