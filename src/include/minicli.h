@@ -2,6 +2,7 @@
 #define MINICLI_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "set.h"
@@ -32,8 +33,7 @@ typedef struct {
 	const char* description;
 } CliInitParams;
 
-static inline int
-cli_init(CliParser* parser, CliInitParams params)
+static inline int cli_init(CliParser* parser, CliInitParams params)
 {
 	parser->name = params.name;
 	parser->description = params.description;
@@ -43,17 +43,16 @@ cli_init(CliParser* parser, CliInitParams params)
 	 (CliArgument*) malloc(sizeof(CliArgument) * parser->arg_capacity);
 	return set_init(&parser->arguments);
 }
-
 static inline int cli_add_argument(CliParser* parser, CliArgument arg)
 {
 	if (parser->arg_count >= parser->arg_capacity) {
 		parser->arg_capacity *= 2;
-		CliArgument* tmp = (CliArgument*) realloc(parser->registered_args,
+		CliArgument* temp = (CliArgument*) realloc(parser->registered_args,
 		 sizeof(CliArgument) * parser->arg_capacity);
-		if (tmp == NULL) {
-			return 1;
+		if (!temp) {
+			return -1;
 		}
-		parser->registered_args = tmp;
+		parser->registered_args = temp;
 	}
 	parser->registered_args[parser->arg_count++] = arg;
 	set_add_str(&parser->arguments, arg.name);
