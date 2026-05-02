@@ -11,28 +11,6 @@
 #define CURRENCY_CODE_LEN 8
 #define TARGET_CURRENCIES_MAX_LEN 256
 
-static void print_help_cb(int argc, char** argv, void* user_data)
-{
-	(void) argc;
-	(void) argv;
-	const char* prog_name = (const char*) user_data;
-	printf("Usage: %s [options] <value> <Current currency> <Desired "
-	       "currency(ies)>\n",
-	 prog_name);
-	printf("\nOptions:\n");
-	printf("  -h, --help        Show this help message\n");
-	printf("  -l, --list        List all supported currency codes and names\n");
-	printf("  -s, --search <q>  Search for a currency code or name\n");
-	printf("  -t, --test <iso>  Test internal currency list against API for "
-	       "base <iso>\n");
-	printf("\nPositional Arguments:\n");
-	printf("  <Desired currency(ies)> can be a single code (e.g., USD) or a "
-	       "comma-separated list (e.g., EUR,ZAR,XCD)\n");
-	printf("\nExample:\n");
-	printf("  %s 100 USD EUR,ZAR,XCD\n", prog_name);
-	exit(EXIT_SUCCESS);
-}
-
 static void list_currencies_cb(int argc, char** argv, void* user_data)
 {
 	(void) argc;
@@ -91,7 +69,6 @@ int main(int argc, char* argv[])
 	cli_init(&parser, params);
 
 	CliArgument args[] = {
-	    {"--help", "-h", "Show this help message", print_help_cb, argv[0]},
 	    {"--list", "-l", "List all supported currency codes and names",
 	        list_currencies_cb, NULL},
 	    {"--search", "-s", "Search for a currency code or name",
@@ -111,7 +88,9 @@ int main(int argc, char* argv[])
 
 	if (argc < 4) {
 		fprintf(stderr, "Error: Invalid number of arguments.\n");
-		print_help_cb(0, NULL, argv[0]);
+		printf("Usage: %s [options] <value> <base_currency> "
+		       "<target_currencies>\n",
+		 argv[0]);
 		return EXIT_FAILURE;
 	}
 

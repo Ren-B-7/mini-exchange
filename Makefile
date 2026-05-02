@@ -90,7 +90,7 @@ format:
 
 # Minimal linter to avoid blocking progress
 CLANG_TIDY_CHECKS = -checks=-*,bugprone-*,clang-analyzer-*
-CLANG_TIDY_FLAGS = -std=c99 -pedantic -Wall -Wextra $(SYSTEM_INCLUDES) -Isrc
+CLANG_TIDY_FLAGS = -std=c99 -pedantic -Wall -Wextra -Isrc -Isrc/include
 
 lint:
 	clang-tidy $(CLANG_TIDY_CHECKS) $(SRCS) -- $(CLANG_TIDY_FLAGS)

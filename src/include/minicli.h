@@ -65,6 +65,13 @@ static inline int cli_add_argument(CliParser* parser, CliArgument arg)
 static inline void cli_parse(CliParser* parser, int argc, char** argv)
 {
 	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+			printf("Usage: %s\n%s\n\nArguments:\n", parser->name, parser->description);
+			for (size_t j = 0; j < parser->arg_count; j++) {
+				printf("  %-10s %-10s %s\n", parser->registered_args[j].shorthand ? parser->registered_args[j].shorthand : "", parser->registered_args[j].name, parser->registered_args[j].description);
+			}
+			exit(EXIT_SUCCESS);
+		}
 		for (size_t j = 0; j < parser->arg_count; j++) {
 			if (strcmp(argv[i], parser->registered_args[j].name) == 0 ||
 			 (parser->registered_args[j].shorthand &&
