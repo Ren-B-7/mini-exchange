@@ -116,5 +116,9 @@ install: $(TARGET)
 	mkdir -p $(HOME)/.local/bin
 	install -m 755 $(TARGET) $(HOME)/.local/bin/
 
+test:
+	$(CC) -Itests/include tests/test_placeholder.c -o tests/runner
+	./tests/runner
+
 clean:
 	rm -rf $(BIN_DIR) $(OBJ_DIR)
