@@ -77,11 +77,7 @@ int main(int argc, char* argv[])
 	        test_currencies_cb, NULL}};
 
 	for (size_t i = 0; i < sizeof(args) / sizeof(CliArgument); ++i) {
-		if (cli_add_argument(&parser, args[i]) != 0) {
-			fprintf(stderr, "Error: Failed to add CLI argument.\n");
-			cli_destroy(&parser);
-			return EXIT_FAILURE;
-		}
+		cli_add_argument(&parser, args[i]);
 	}
 
 	cli_parse(&parser, argc, argv);
