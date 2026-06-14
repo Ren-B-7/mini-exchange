@@ -11,16 +11,17 @@
 #define CURRENCY_CODE_LEN 8
 #define TARGET_CURRENCIES_MAX_LEN 256
 
-static void list_currencies_cb(int argc, char** argv, void* user_data)
+static int list_currencies_cb(int argc, char** argv, void* user_data)
 {
 	(void) argc;
 	(void) argv;
 	(void) user_data;
 	list_currencies();
 	exit(EXIT_SUCCESS);
+	return 0;
 }
 
-static void search_currencies_cb(int argc, char** argv, void* user_data)
+static int search_currencies_cb(int argc, char** argv, void* user_data)
 {
 	(void) user_data;
 	if (argc < 1) {
@@ -29,9 +30,10 @@ static void search_currencies_cb(int argc, char** argv, void* user_data)
 	}
 	search_currencies(argv[0]);
 	exit(EXIT_SUCCESS);
+	return 1;
 }
 
-static void test_currencies_cb(int argc, char** argv, void* user_data)
+static int test_currencies_cb(int argc, char** argv, void* user_data)
 {
 	(void) user_data;
 	if (argc < 1) {
@@ -50,6 +52,7 @@ static void test_currencies_cb(int argc, char** argv, void* user_data)
 	}
 	test_currencies_against_api(test_base);
 	exit(EXIT_SUCCESS);
+	return 1;
 }
 
 static void uppercase_string(char* str)
@@ -80,9 +83,9 @@ int main(int argc, char* argv[])
 		cli_add_argument(&parser, args[i]);
 	}
 
-	cli_parse(&parser, argc, argv);
+	int consumed = cli_parse(&parser, argc, argv);
 
-	if (argc < 4) {
+	if (argc - consumed < 3) {
 		fprintf(stderr, "Error: Invalid number of arguments.\n");
 		printf("Usage: %s [options] <value> <base_currency> "
 		       "<target_currencies>\n",
@@ -91,14 +94,15 @@ int main(int argc, char* argv[])
 	}
 
 	char* endptr;
-	double value = strtod(argv[1], &endptr);
+	double value = strtod(argv[consumed], &endptr);
 	if (*endptr != '\0') {
-		fprintf(stderr, "Error: Invalid value '%s'\n", argv[1]);
+		fprintf(stderr, "Error: Invalid value '%s'\n", argv[consumed]);
 		return EXIT_FAILURE;
 	}
 
 	char current_currency[CURRENCY_CODE_LEN];
-	snprintf(current_currency, sizeof(current_currency), "%s", argv[2]);
+	snprintf(current_currency, sizeof(current_currency), "%s",
+	 argv[consumed + 1]);
 	uppercase_string(current_currency);
 
 	if (!is_supported_currency(current_currency)) {
@@ -109,7 +113,7 @@ int main(int argc, char* argv[])
 
 	char target_currencies_str[TARGET_CURRENCIES_MAX_LEN];
 	snprintf(target_currencies_str, sizeof(target_currencies_str), "%s",
-	 argv[3]);
+	 argv[consumed + 2]);
 
 	cJSON* json = NULL;
 	if (strchr(target_currencies_str, ',') != NULL) {
